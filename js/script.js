@@ -19,6 +19,8 @@
             { id: 13, name: 'IndusInd CC', category: 'bill', amount: 7800, dueDate: 2, paid: false, totalAmount: 45000, balance: 45000 }
         ];
 
+
+        
         // Load data from localStorage on page load
         function loadData() {
             const savedExpenses = localStorage.getItem('paymentTrackerExpenses');
