@@ -18,9 +18,7 @@
             { id: 12, name: 'SBI CC 8735', category: 'bill', amount: 18267, dueDate: 11, paid: false, totalAmount: 18267, balance: 18267 },
             { id: 13, name: 'IndusInd CC', category: 'bill', amount: 7800, dueDate: 2, paid: false, totalAmount: 45000, balance: 45000 }
         ];
-
-
-        
+ 
         // Load data from localStorage on page load
         function loadData() {
             const savedExpenses = localStorage.getItem('paymentTrackerExpenses');
