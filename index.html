@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Payment Tracker</title>
+     <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    
+     <div class="container">
+        <div class="header">
+            <div>
+                <h1>Payment Tracker Pro</h1>
+                <p class="subtitle">Track payments, upload invoices, and view transaction history</p>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab" onclick="switchTab('history')">Payment History</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <div style="margin-bottom: var(--space-24);">
+                <button class="btn btn-primary" onclick="openAddPaymentModal()">➕ Add New Payment</button>
+            </div>
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <h3>Total Monthly EMI</h3>
+                    <div class="amount" id="totalMonthlyAmount">₹0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Total Loan Amount</h3>
+                    <div class="amount" id="totalLoanAmount">₹0</div>
+                </div>
+                <div class="summary-card paid">
+                    <h3>Paid This Month</h3>
+                    <div class="amount" id="paidAmount">₹0</div>
+                </div>
+                <div class="summary-card pending">
+                    <h3>Pending</h3>
+                    <div class="amount" id="pendingAmount">₹0</div>
+                </div>
+                <div class="summary-card">
+                    <h3>Payments Made</h3>
+                    <div class="amount" id="paymentCount">0/15</div>
+                </div>
+            </div>
+
+            <div class="filters">
+                <button class="btn active" onclick="filterExpenses('all')">All</button>
+                <button class="btn" onclick="filterExpenses('loan')">Loans</button>
+                <button class="btn" onclick="filterExpenses('bill')">Bills</button>
+                <button class="btn" onclick="filterExpenses('rent')">Rent & Others</button>
+                <button class="btn" onclick="filterExpenses('House Needs')">House Needs</button>
+                <button class="btn" onclick="filterExpenses('pending')">Pending Only</button>
+            </div>
+
+            <div class="expense-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="checkbox-cell">Paid</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Monthly EMI</th>
+                            <th>Total Amount</th>
+                            <th>Balance</th>
+                            <th>Due Date</th>
+                            <th>Days Until Due</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expenseTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="history" class="tab-content">
+            <div style="margin-bottom: var(--space-24);">
+                <div class="form-group" style="max-width: 400px;">
+                    <label>Filter by Date Range</label>
+                    <div style="display: flex; gap: var(--space-12); align-items: center;">
+                        <input type="date" id="historyStartDate" class="form-control" placeholder="Start Date">
+                        <span>to</span>
+                        <input type="date" id="historyEndDate" class="form-control" placeholder="End Date">
+                        <button class="btn btn-primary" onclick="filterHistoryByDate()">Filter</button>
+                        <button class="btn" onclick="clearHistoryFilter()">Clear</button>
+                    </div>
+                </div>
+            </div>
+            <div id="historyContent">
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Invoice Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Invoice/Receipt</h2>
+                <button class="close-btn" onclick="closeUploadModal()">&times;</button>
+            </div>
+            <form id="uploadForm">
+                <input type="hidden" id="uploadExpenseId">
+                
+                <div class="form-group">
+                    <label>Payment Details</label>
+                    <div id="uploadExpenseDetails" style="padding: var(--space-12); background: var(--color-background); border-radius: var(--radius-base); margin-bottom: var(--space-16);">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Date</label>
+                    <input type="date" id="paymentDate" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Transaction Reference (Optional)</label>
+                    <input type="text" id="transactionRef" class="form-control" placeholder="e.g., UTR/Transaction ID">
+                </div>
+
+                <div class="form-group">
+                    <label>Notes (Optional)</label>
+                    <textarea id="paymentNotes" class="form-control" rows="3" placeholder="Add any additional notes"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Upload Invoice/Receipt</label>
+                    <div class="file-upload" onclick="document.getElementById('invoiceFile').click()">
+                        <input type="file" id="invoiceFile" accept="image/*" multiple onchange="previewImages(event)">
+                        <div class="file-upload-icon">📄</div>
+                        <div>Click to upload or drag and drop</div>
+                        <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: var(--space-8);">
+                            PNG, JPG, PDF up to 10MB
+                        </div>
+                    </div>
+                    <div id="imagePreview" class="image-preview"></div>
+                </div>
+
+                <div style="display: flex; gap: var(--space-12); margin-top: var(--space-24);">
+                    <button type="button" class="btn" onclick="closeUploadModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Save Payment Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- View Invoice Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Payment Details</h2>
+                <button class="close-btn" onclick="closeViewModal()">&times;</button>
+            </div>
+            <div id="viewModalContent"></div>
+        </div>
+    </div>
+
+    <!-- Lightbox for Image Viewing -->
+    <div id="lightbox" class="lightbox" onclick="closeLightbox()">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <img id="lightboxImage" class="lightbox-content" onclick="event.stopPropagation()">
+        <button class="lightbox-download" onclick="downloadImage(); event.stopPropagation();">📥 Download</button>
+    </div>
+
+    <!-- Add New Payment Modal -->
+    <div id="addPaymentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Payment</h2>
+                <button class="close-btn" onclick="closeAddPaymentModal()">&times;</button>
+            </div>
+            <form id="addPaymentForm">
+                <div class="form-group">
+                    <label>Payment Name *</label>
+                    <input type="text" id="newPaymentName" class="form-control" required placeholder="e.g., Credit Card EMI">
+                </div>
+
+                <div class="form-group">
+                    <label>Category *</label>
+                    <select id="newPaymentCategory" class="form-control" required>
+                        <option value="">Select Category</option>
+                        <option value="loan">Loan</option>
+                        <option value="bill">Bill</option>
+                        <option value="rent">Rent & Others</option>
+                        <option value="House Needs">House Needs</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Monthly Payment Amount (₹) *</label>
+                    <input type="number" id="newPaymentAmount" class="form-control" required placeholder="0" min="0" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Total Loan Amount (₹) - Optional</label>
+                    <input type="number" id="newPaymentTotalAmount" class="form-control" placeholder="Leave empty for recurring bills" min="0" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Current Balance (₹) - Optional</label>
+                    <input type="number" id="newPaymentBalance" class="form-control" placeholder="Remaining amount to be paid" min="0" step="1">
+                </div>
+
+                <div class="form-group">
+                    <label>Due Date *</label>
+                    <select id="newPaymentDueDate" class="form-control" required>
+                        <option value="">Select Due Date</option>
+                        <option value="0">As Needed (No fixed date)</option>
+                        <option value="1">1st of every month</option>
+                        <option value="2">2nd of every month</option>
+                        <option value="3">3rd of every month</option>
+                        <option value="4">4th of every month</option>
+                        <option value="5">5th of every month</option>
+                        <option value="6">6th of every month</option>
+                        <option value="7">7th of every month</option>
+                        <option value="8">8th of every month</option>
+                        <option value="9">9th of every month</option>
+                        <option value="10">10th of every month</option>
+                        <option value="11">11th of every month</option>
+                        <option value="12">12th of every month</option>
+                        <option value="13">13th of every month</option>
+                        <option value="14">14th of every month</option>
+                        <option value="15">15th of every month</option>
+                        <option value="16">16th of every month</option>
+                        <option value="17">17th of every month</option>
+                        <option value="18">18th of every month</option>
+                        <option value="19">19th of every month</option>
+                        <option value="20">20th of every month</option>
+                        <option value="21">21st of every month</option>
+                        <option value="22">22nd of every month</option>
+                        <option value="23">23rd of every month</option>
+                        <option value="24">24th of every month</option>
+                        <option value="25">25th of every month</option>
+                        <option value="26">26th of every month</option>
+                        <option value="27">27th of every month</option>
+                        <option value="28">28th of every month</option>
+                        <option value="29">29th of every month</option>
+                        <option value="30">30th of every month</option>
+                        <option value="31">31st of every month</option>
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: var(--space-12); margin-top: var(--space-24);">
+                    <button type="button" class="btn" onclick="closeAddPaymentModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Add Payment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="./js/script.js"> </script>
+</body>
+</html>
